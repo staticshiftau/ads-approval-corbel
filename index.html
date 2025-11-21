@@ -958,9 +958,8 @@
                         ) : (
                             <div style={{
                                 display: 'grid',
-                                gridTemplateColumns: 'repeat(auto-fit, 500px)',
-                                gap: '24px',
-                                justifyContent: 'center'
+                                gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))',
+                                gap: '24px'
                             }}>
                                 {currentAds.map((ad) => (
                                     <FacebookAdCard
