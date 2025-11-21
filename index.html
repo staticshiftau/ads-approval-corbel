@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Facebook Ad Approval Portal - Corbel</title>
+    <title>Facebook Ad Approval Portal</title>
     <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -35,8 +35,9 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // ===== CONFIGURATION - CORBEL =====
+        // ===== CONFIGURATION - UPDATE FOR EACH CLIENT =====
         const CONFIG = {
+            // TODO: Replace with client-specific values
             SHEET_ID: '1TNBlbHauHOkcMNi16NzJt94Zy_qet7QhOVKIuiOmD0k',
             API_KEY: 'AIzaSyABznAS0fH0tYNh6wlS_iEL08b6znNJCL8',
             CLIENT_INFO_SHEET: 'Client Info',
@@ -166,7 +167,7 @@
                                     >
                                         See more
                                     </span>
-                                </>>
+                                </>
                             ) : (
                                 <>
                                     {ad.adCopy}
@@ -183,9 +184,9 @@
                                             >
                                                 See less
                                             </span>
-                                        </>>
+                                        </>
                                     )}
-                                </>>
+                                </>
                             )}
                         </div>
                     )}
@@ -680,7 +681,7 @@
                                 Meta Ads Approval Portal
                             </h1>
                             <p style={{ fontSize: '14px', color: '#65676b' }}>
-                                {clientInfo?.businessName || 'Corbel'} - Review and approve ad campaigns
+                                {clientInfo?.businessName || 'Client'} - Review and approve ad campaigns
                             </p>
                         </div>
 
