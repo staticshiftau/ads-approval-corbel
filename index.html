@@ -37,11 +37,11 @@
 
         // ===== CONFIGURATION - UPDATE FOR EACH CLIENT =====
         const CONFIG = {
-            SHEET_ID: '1OQxNLz4IuwsVOSVBTOyvZK-a_9mog81Cns5XGZYBFXU',
+            SHEET_ID: '1TNBlbHauHOkcMNi16NzJt94Zy_qet7QhOVKIuiOmD0k',
             API_KEY: 'AIzaSyABznAS0fH0tYNh6wlS_iEL08b6znNJCL8',
             CLIENT_INFO_SHEET: 'Client Info',
             ADS_SHEET: 'Ads Masterlist',
-            APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbynP-7NA6OgMENqgH8HE4BR_VuP1lxf7syPOB_avUX570Sm2Ci2a4LELJUN9ukA9-QT/exec',
+            APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxkC4HVtRarNWxBPwSv_5yYWmuGSaYGXKLOhnnc_BMLgb5aYCD3dGLxpssWeEPZ-lUbdQ/exec',
             
             ADS_COLUMNS: {
                 STATUS: 0,              // Column A
@@ -78,7 +78,8 @@
                     overflow: 'hidden',
                     width: '500px',
                     minWidth: '500px',
-                    maxWidth: '500px'
+                    maxWidth: '500px',
+                    margin: '0 auto 24px auto'
                 }}>
                     {/* Header: Profile + Sponsored */}
                     <div style={{
@@ -1001,9 +1002,8 @@
                         ) : (
                             <div style={{
                                 display: 'grid',
-                                gridTemplateColumns: 'repeat(2, 500px)',
-                                gap: '16px',
-                                justifyContent: 'center'
+                                gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))',
+                                gap: '24px'
                             }}>
                                 {currentAds.map((ad) => (
                                     <FacebookAdCard
