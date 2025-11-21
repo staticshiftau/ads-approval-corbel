@@ -44,16 +44,16 @@
             APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbynP-7NA6OgMENqgH8HE4BR_VuP1lxf7syPOB_avUX570Sm2Ci2a4LELJUN9ukA9-QT/exec',
             
             ADS_COLUMNS: {
-                STATUS: 0,              // Column A
-                AD_NAME: 1,             // Column B
-                CAMPAIGN_ANGLE: 2,      // Column C
-                HEADLINE: 3,            // Column D
-                AD_COPY: 4,             // Column E
-                CREATIVE_ASSETS: 6,     // Column G (Direct URL - auto-converted!)
-                RECOMMENDED_CTA: 7,     // Column H (CTA dropdown)
-                IMAGE_TEXT: 8,          // Column I
-                CLIENT_NOTE: 9,         // Column J
-                UPDATED_DATE: 10        // Column K
+                STATUS: 0,
+                AD_NAME: 1,
+                CAMPAIGN_ANGLE: 2,
+                HEADLINE: 3,
+                AD_COPY: 4,
+                CREATIVE_ASSETS: 6,
+                RECOMMENDED_CTA: 7,
+                IMAGE_TEXT: 8,
+                CLIENT_NOTE: 9,
+                UPDATED_DATE: 10
             },
             
             CLIENT_COLUMNS: {
@@ -76,8 +76,9 @@
                     borderRadius: '8px',
                     boxShadow: '0 1px 2px rgba(0, 0, 0, 0.2)',
                     overflow: 'hidden',
-                    maxWidth: '600px',
-                    margin: '0 auto 24px auto'
+                    width: '600px',
+                    minWidth: '600px',
+                    maxWidth: '600px'
                 }}>
                     {/* Header: Profile + Sponsored */}
                     <div style={{
@@ -533,7 +534,6 @@
                                     setAds(cachedAds);
                                     setClientInfo(cachedClient);
                                     setLoading(false);
-                                    // Still fetch in background to sync
                                     fetchAds(false);
                                     return;
                                 }
@@ -577,7 +577,6 @@
                     if (adsData.values && adsData.values.length > 0) {
                         const rows = adsData.values.slice(1);
 
-                        // Get all pending ads
                         const pendingAds = rows.map((row, index) => ({
                             rowIndex: index + 2,
                             businessName: extractedClientInfo.businessName,
@@ -599,7 +598,6 @@
                             ad.status.toLowerCase() === 'pending'
                         );
 
-                        // Sync actioned ads with sheet status
                         syncActionedAdsWithSheet(rows, extractedClientInfo);
 
                         setAds(pendingAds);
@@ -629,10 +627,9 @@
                     const actionedAds = JSON.parse(stored);
                     let hasChanges = false;
 
-                    // Check each actioned ad against current sheet status
                     ['approved', 'needsEdit', 'rejected'].forEach(category => {
                         actionedAds[category] = actionedAds[category].filter(ad => {
-                            const rowIndex = ad.rowIndex - 2; // Convert back to array index
+                            const rowIndex = ad.rowIndex - 2;
                             if (rowIndex >= 0 && rowIndex < allRows.length) {
                                 const currentStatus = allRows[rowIndex][CONFIG.ADS_COLUMNS.STATUS] || '';
                                 const isStillActioned = currentStatus.toLowerCase() !== 'for review' && 
@@ -640,7 +637,6 @@
                                                        currentStatus !== '';
                                 
                                 if (!isStillActioned) {
-                                    // Ad was changed back to "For Review" in sheet - remove from localStorage
                                     hasChanges = true;
                                     console.log(`Detected manual change: Ad ${ad.adName} (row ${ad.rowIndex}) changed back to For Review`);
                                     return false;
@@ -712,7 +708,6 @@
                 setUpdating(prev => ({ ...prev, [ad.rowIndex]: true }));
 
                 try {
-                    // Update sheet status to "For Review"
                     await fetch(CONFIG.APPS_SCRIPT_URL, {
                         method: 'POST',
                         mode: 'no-cors',
@@ -720,15 +715,13 @@
                         body: JSON.stringify({
                             rowIndex: ad.rowIndex,
                             status: 'For Review',
-                            notes: '', // Clear notes
+                            notes: '',
                             timestamp: new Date().toISOString()
                         })
                     });
 
-                    // Remove from actioned ads
                     removeActionedAd(ad.rowIndex);
 
-                    // Add back to pending ads with updated client info
                     const revertedAd = {
                         ...ad,
                         status: 'For Review',
@@ -739,7 +732,6 @@
 
                     setAds(prev => [revertedAd, ...prev]);
 
-                    // Update cache
                     localStorage.setItem('cachedAds', JSON.stringify({
                         ads: [revertedAd, ...ads],
                         clientInfo: clientInfo,
@@ -748,7 +740,6 @@
 
                     showNotification('✓ Ad reverted to pending review!', 'success');
 
-                    // Switch to pending tab
                     setActiveTab('pending');
                 } catch (err) {
                     console.error('Revert error:', err);
@@ -787,10 +778,8 @@
             };
 
             const forceRefresh = () => {
-                // Clear all caches
                 localStorage.removeItem('cachedAds');
                 localStorage.removeItem('actionedAds');
-                // Reload page
                 window.location.reload();
             };
 
@@ -839,7 +828,7 @@
 
             return (
                 <div style={{ minHeight: '100vh', backgroundColor: '#f0f2f5', padding: '20px' }}>
-                    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+                    <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
                         <div style={{ 
                             marginBottom: '20px', 
                             padding: '20px',
@@ -953,13 +942,13 @@
                                     {activeTab === 'pending' ? 'All caught up!' : 'Nothing here yet'}
                                 </div>
                             </div>
-                      ) : (
-    <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(2, 600px)',
-        gap: '24px',
-        justifyContent: 'center'
-    }}>
+                        ) : (
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(2, 600px)',
+                                gap: '24px',
+                                justifyContent: 'center'
+                            }}>
                                 {currentAds.map((ad) => (
                                     <FacebookAdCard
                                         key={ad.rowIndex}
@@ -988,9 +977,9 @@
                                 from { transform: translateX(0); opacity: 1; }
                                 to { transform: translateX(400px); opacity: 0; }
                             }
-                            @media (max-width: 768px) {
-                                div[style*="gridTemplateColumns"] {
-                                    grid-template-columns: 1fr !important;
+                            @media (max-width: 1300px) {
+                                div[style*="repeat(2, 600px)"] {
+                                    grid-template-columns: 600px !important;
                                 }
                             }
                         `}
