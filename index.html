@@ -43,20 +43,19 @@
             ADS_SHEET: 'Ads Masterlist',
             APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwsipHBdm_x2tUIuEfb5doByUnNZKA0n6qqno7Uqja6km0Ktfq3EYqBsTVQ_iP8EazdPA/exec',
             
-            // Updated column mapping after "Internal Status" column was added at position B
-            ADS_COLUMNS: {
-                STATUS: 0,              // Column A
-                INTERNAL_STATUS: 1,     // Column B (skip - not used in portal)
-                AD_NAME: 2,             // Column C
-                CAMPAIGN_ANGLE: 3,      // Column D
-                HEADLINE: 4,            // Column E
-                AD_COPY: 5,             // Column F
-                CREATIVE_ASSETS: 6,     // Column G
-                DIRECT_URL: 7,          // Column H (Direct URL - hidden)
-                RECOMMENDED_CTA: 8,     // Column I (CTA dropdown)
-                IMAGE_TEXT: 9,          // Column J
-                CLIENT_NOTE: 10,        // Column K
-                UPDATED_DATE: 11        // Column L
+            // Column name mappings - now using actual column names from the sheet
+            ADS_COLUMN_NAMES: {
+                STATUS: 'Status',
+                INTERNAL_STATUS: 'Internal Status',
+                AD_NAME: 'Ad Name',
+                CAMPAIGN_ANGLE: 'Campaign Angle',
+                HEADLINE: 'Headline',
+                AD_COPY: 'Ad Copy (Body)',
+                CREATIVE_ASSETS: 'Creative Asset',
+                DIRECT_URL: 'Direct URL (hidden)',
+                IMAGE_TEXT: 'Image Text',
+                CLIENT_NOTE: 'Client Note',
+                UPDATED_DATE: 'Updated Date'
             },
             
             CLIENT_COLUMNS: {
@@ -277,7 +276,7 @@
                                     whiteSpace: 'nowrap',
                                     flexShrink: 0
                                 }}>
-                                    {ad.recommendedCTA || 'Learn more'}
+                                    Learn more
                                 </button>
                             </div>
                         )}
@@ -474,6 +473,7 @@
             const [actionedAds, setActionedAds] = useState({
                 approved: [], needsEdit: [], rejected: []
             });
+            const [columnMap, setColumnMap] = useState({});
 
             useEffect(() => {
                 fetchAds();
@@ -527,16 +527,47 @@
                 });
             };
 
+            // Helper function to build column map from headers
+            const buildColumnMap = (headers) => {
+                const map = {};
+                headers.forEach((header, index) => {
+                    map[header] = index;
+                });
+                return map;
+            };
+
+            const parseAdFromRow = (row, rowIndex, clientInfo, colMap) => {
+                // Only read from Direct URL (hidden) column
+                const imageUrl = row[colMap[CONFIG.ADS_COLUMN_NAMES.DIRECT_URL]] || '';
+
+                return {
+                    rowIndex: rowIndex,
+                    businessName: clientInfo.businessName,
+                    websiteUrl: clientInfo.websiteUrl,
+                    destinationUrl: clientInfo.destinationUrl,
+                    profileImage: clientInfo.profileImage,
+                    status: row[colMap[CONFIG.ADS_COLUMN_NAMES.STATUS]] || '',
+                    adName: row[colMap[CONFIG.ADS_COLUMN_NAMES.AD_NAME]] || '',
+                    campaignAngle: row[colMap[CONFIG.ADS_COLUMN_NAMES.CAMPAIGN_ANGLE]] || '',
+                    headline: row[colMap[CONFIG.ADS_COLUMN_NAMES.HEADLINE]] || '',
+                    adCopy: row[colMap[CONFIG.ADS_COLUMN_NAMES.AD_COPY]] || '',
+                    creativeAsset: imageUrl,
+                    imageText: row[colMap[CONFIG.ADS_COLUMN_NAMES.IMAGE_TEXT]] || '',
+                    notes: row[colMap[CONFIG.ADS_COLUMN_NAMES.CLIENT_NOTE]] || ''
+                };
+            };
+
             const fetchAds = async (useCache = true) => {
                 try {
                     if (useCache) {
                         const cached = localStorage.getItem('cachedAds');
                         if (cached) {
                             try {
-                                const { ads: cachedAds, clientInfo: cachedClient, timestamp } = JSON.parse(cached);
+                                const { ads: cachedAds, clientInfo: cachedClient, timestamp, columnMap: cachedColMap } = JSON.parse(cached);
                                 if (Date.now() - timestamp < 120000) {
                                     setAds(cachedAds);
                                     setClientInfo(cachedClient);
+                                    setColumnMap(cachedColMap || {});
                                     setLoading(false);
                                     // Still fetch in background to sync
                                     fetchAds(false);
@@ -580,38 +611,33 @@
                     setClientInfo(extractedClientInfo);
 
                     if (adsData.values && adsData.values.length > 0) {
+                        // Build column map from headers
+                        const headers = adsData.values[0];
+                        const colMap = buildColumnMap(headers);
+                        setColumnMap(colMap);
+
+                        console.log('📊 Column Map:', colMap);
+
                         const rows = adsData.values.slice(1);
 
                         // Get all pending ads
-                        const pendingAds = rows.map((row, index) => ({
-                            rowIndex: index + 2,
-                            businessName: extractedClientInfo.businessName,
-                            websiteUrl: extractedClientInfo.websiteUrl,
-                            destinationUrl: extractedClientInfo.destinationUrl,
-                            profileImage: extractedClientInfo.profileImage,
-                            status: row[CONFIG.ADS_COLUMNS.STATUS] || '',
-                            adName: row[CONFIG.ADS_COLUMNS.AD_NAME] || '',
-                            campaignAngle: row[CONFIG.ADS_COLUMNS.CAMPAIGN_ANGLE] || '',
-                            headline: row[CONFIG.ADS_COLUMNS.HEADLINE] || '',
-                            adCopy: row[CONFIG.ADS_COLUMNS.AD_COPY] || '',
-                            creativeAsset: row[CONFIG.ADS_COLUMNS.CREATIVE_ASSETS] || '',
-                            recommendedCTA: row[CONFIG.ADS_COLUMNS.RECOMMENDED_CTA] || 'Learn More',
-                            imageText: row[CONFIG.ADS_COLUMNS.IMAGE_TEXT] || '',
-                            notes: row[CONFIG.ADS_COLUMNS.CLIENT_NOTE] || ''
-                        })).filter(ad => 
+                        const pendingAds = rows.map((row, index) => 
+                            parseAdFromRow(row, index + 2, extractedClientInfo, colMap)
+                        ).filter(ad => 
                             ad.status.toLowerCase() === 'for review' || 
                             ad.status === '' ||
                             ad.status.toLowerCase() === 'pending'
                         );
 
                         // Sync actioned ads with sheet status
-                        syncActionedAdsWithSheet(rows, extractedClientInfo);
+                        syncActionedAdsWithSheet(rows, extractedClientInfo, colMap);
 
                         setAds(pendingAds);
                         
                         localStorage.setItem('cachedAds', JSON.stringify({
                             ads: pendingAds,
                             clientInfo: extractedClientInfo,
+                            columnMap: colMap,
                             timestamp: Date.now()
                         }));
                     } else {
@@ -626,7 +652,7 @@
                 }
             };
 
-            const syncActionedAdsWithSheet = (allRows, clientInfo) => {
+            const syncActionedAdsWithSheet = (allRows, clientInfo, colMap) => {
                 try {
                     const stored = localStorage.getItem('actionedAds');
                     const existingActionedAds = stored ? JSON.parse(stored) : { approved: [], needsEdit: [], rejected: [] };
@@ -643,7 +669,7 @@
 
                     allRows.forEach((row, index) => {
                         const rowIndex = index + 2;
-                        const status = (row[CONFIG.ADS_COLUMNS.STATUS] || '').toLowerCase();
+                        const status = (row[colMap[CONFIG.ADS_COLUMN_NAMES.STATUS]] || '').toLowerCase();
 
                         // Skip pending/for review ads
                         if (status === 'for review' || status === 'pending' || status === '') {
@@ -651,22 +677,7 @@
                         }
 
                         // Create ad object
-                        const ad = {
-                            rowIndex: rowIndex,
-                            businessName: clientInfo.businessName,
-                            websiteUrl: clientInfo.websiteUrl,
-                            destinationUrl: clientInfo.destinationUrl,
-                            profileImage: clientInfo.profileImage,
-                            status: row[CONFIG.ADS_COLUMNS.STATUS] || '',
-                            adName: row[CONFIG.ADS_COLUMNS.AD_NAME] || '',
-                            campaignAngle: row[CONFIG.ADS_COLUMNS.CAMPAIGN_ANGLE] || '',
-                            headline: row[CONFIG.ADS_COLUMNS.HEADLINE] || '',
-                            adCopy: row[CONFIG.ADS_COLUMNS.AD_COPY] || '',
-                            creativeAsset: row[CONFIG.ADS_COLUMNS.CREATIVE_ASSETS] || '',
-                            recommendedCTA: row[CONFIG.ADS_COLUMNS.RECOMMENDED_CTA] || 'Learn More',
-                            imageText: row[CONFIG.ADS_COLUMNS.IMAGE_TEXT] || '',
-                            notes: row[CONFIG.ADS_COLUMNS.CLIENT_NOTE] || ''
-                        };
+                        const ad = parseAdFromRow(row, rowIndex, clientInfo, colMap);
 
                         // Check if we have existing metadata for this ad
                         let existingAd = null;
@@ -685,7 +696,7 @@
                             ad.actionDate = existingAd.actionDate;
                         } else {
                             // New actioned ad from sheet (manually changed)
-                            ad.actionStatus = row[CONFIG.ADS_COLUMNS.STATUS] || '';
+                            ad.actionStatus = row[colMap[CONFIG.ADS_COLUMN_NAMES.STATUS]] || '';
                             ad.actionNotes = '';
                             ad.actionDate = new Date().toISOString();
                         }
@@ -734,6 +745,7 @@
                     localStorage.setItem('cachedAds', JSON.stringify({
                         ads: updatedAds,
                         clientInfo: clientInfo,
+                        columnMap: columnMap,
                         timestamp: Date.now()
                     }));
                     
@@ -792,6 +804,7 @@
                     localStorage.setItem('cachedAds', JSON.stringify({
                         ads: [revertedAd, ...ads],
                         clientInfo: clientInfo,
+                        columnMap: columnMap,
                         timestamp: Date.now()
                     }));
 
