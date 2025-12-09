@@ -43,17 +43,20 @@
             ADS_SHEET: 'Ads Masterlist',
             APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwsipHBdm_x2tUIuEfb5doByUnNZKA0n6qqno7Uqja6km0Ktfq3EYqBsTVQ_iP8EazdPA/exec',
             
+            // Updated column mapping after "Internal Status" column was added at position B
             ADS_COLUMNS: {
                 STATUS: 0,              // Column A
-                AD_NAME: 1,             // Column B
-                CAMPAIGN_ANGLE: 2,      // Column C
-                HEADLINE: 3,            // Column D
-                AD_COPY: 4,             // Column E
-                CREATIVE_ASSETS: 6,     // Column G (Direct URL - auto-converted!)
-                RECOMMENDED_CTA: 7,     // Column H (CTA dropdown)
-                IMAGE_TEXT: 8,          // Column I
-                CLIENT_NOTE: 9,         // Column J
-                UPDATED_DATE: 10        // Column K
+                INTERNAL_STATUS: 1,     // Column B (skip - not used in portal)
+                AD_NAME: 2,             // Column C
+                CAMPAIGN_ANGLE: 3,      // Column D
+                HEADLINE: 4,            // Column E
+                AD_COPY: 5,             // Column F
+                CREATIVE_ASSETS: 6,     // Column G
+                DIRECT_URL: 7,          // Column H (Direct URL - hidden)
+                RECOMMENDED_CTA: 8,     // Column I (CTA dropdown)
+                IMAGE_TEXT: 9,          // Column J
+                CLIENT_NOTE: 10,        // Column K
+                UPDATED_DATE: 11        // Column L
             },
             
             CLIENT_COLUMNS: {
@@ -274,7 +277,7 @@
                                     whiteSpace: 'nowrap',
                                     flexShrink: 0
                                 }}>
-                                    Learn more
+                                    {ad.recommendedCTA || 'Learn more'}
                                 </button>
                             </div>
                         )}
