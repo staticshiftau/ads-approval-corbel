@@ -35,13 +35,13 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // ===== CONFIGURATION - UPDATE FOR EACH CLIENT =====
+        // ===== CONFIGURATION - CORBEL CLIENT =====
         const CONFIG = {
             SHEET_ID: '1TNBlbHauHOkcMNi16NzJt94Zy_qet7QhOVKIuiOmD0k',
             API_KEY: 'AIzaSyABznAS0fH0tYNh6wlS_iEL08b6znNJCL8',
             CLIENT_INFO_SHEET: 'Client Info',
             ADS_SHEET: 'Ads Masterlist',
-            APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwsipHBdm_x2tUIuEfb5doByUnNZKA0n6qqno7Uqja6km0Ktfq3EYqBsTVQ_iP8EazdPA/exec',
+            APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxcutmIAcBGDW_OeL5ZfYrvkbpaPzTp_z-xJS0M7PKZR7m_MWjBzalxk1DYXPc6CEiLBA/exec',
 
             // Column names for dynamic mapping
             ADS_COLUMN_NAMES: {
@@ -135,8 +135,8 @@
                             flexShrink: 0
                         }}>
                             {ad.profileImage ? (
-                                <img 
-                                    src={ad.profileImage} 
+                                <img
+                                    src={ad.profileImage}
                                     alt={ad.businessName}
                                     style={{
                                         width: '100%',
@@ -150,16 +150,16 @@
                             )}
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ 
-                                fontSize: '15px', 
+                            <div style={{
+                                fontSize: '15px',
                                 fontWeight: '600',
                                 color: '#050505',
                                 lineHeight: '20px'
                             }}>
                                 {ad.businessName || 'Business Name'}
                             </div>
-                            <div style={{ 
-                                fontSize: '13px', 
+                            <div style={{
+                                fontSize: '13px',
                                 color: '#65676b',
                                 lineHeight: '16px'
                             }}>
@@ -189,7 +189,7 @@
                             {shouldCollapse && !isExpanded ? (
                                 <>
                                     {ad.adCopy.substring(0, 125)}...{' '}
-                                    <span 
+                                    <span
                                         onClick={() => setIsExpanded(true)}
                                         style={{
                                             color: '#65676b',
@@ -206,7 +206,7 @@
                                     {shouldCollapse && isExpanded && (
                                         <>
                                             {' '}
-                                            <span 
+                                            <span
                                                 onClick={() => setIsExpanded(false)}
                                                 style={{
                                                     color: '#65676b',
@@ -242,9 +242,9 @@
                                 <div style={{ fontSize: '14px', fontWeight: '500', marginBottom: '8px' }}>
                                     Failed to load image
                                 </div>
-                                <a 
-                                    href={ad.creativeAsset} 
-                                    target="_blank" 
+                                <a
+                                    href={ad.creativeAsset}
+                                    target="_blank"
                                     rel="noopener noreferrer"
                                     style={{ fontSize: '12px', color: '#1877f2' }}
                                 >
@@ -277,7 +277,7 @@
                                 {ad.websiteUrl.replace(/^https?:\/\/(www\.)?/, '')}
                             </div>
                         )}
-                        
+
                         {ad.headline && (
                             <div style={{
                                 display: 'flex',
@@ -355,7 +355,7 @@
                                     📊 Campaign: {ad.campaignAngle}
                                 </div>
                             )}
-                            
+
                             <textarea
                                 placeholder="Add notes or feedback (optional)..."
                                 value={editNotes[ad.rowIndex] || ''}
@@ -374,7 +374,7 @@
                                     opacity: updating[ad.rowIndex] ? 0.5 : 1
                                 }}
                             />
-                            
+
                             <div style={{
                                 display: 'grid',
                                 gridTemplateColumns: '1fr 1fr 1fr',
@@ -451,19 +451,19 @@
                             backgroundColor: '#fffbeb',
                             borderTop: '3px solid #fbbf24'
                         }}>
-                            <div style={{ 
-                                fontSize: '11px', 
-                                fontWeight: '600', 
-                                color: '#92400e', 
+                            <div style={{
+                                fontSize: '11px',
+                                fontWeight: '600',
+                                color: '#92400e',
                                 marginBottom: '6px',
                                 textTransform: 'uppercase',
                                 letterSpacing: '0.5px'
                             }}>
                                 📝 Feedback:
                             </div>
-                            <div style={{ 
-                                fontSize: '14px', 
-                                color: '#78350f', 
+                            <div style={{
+                                fontSize: '14px',
+                                color: '#78350f',
                                 whiteSpace: 'pre-wrap',
                                 lineHeight: '1.5'
                             }}>
@@ -476,9 +476,9 @@
                                     marginTop: '8px',
                                     opacity: 0.8
                                 }}>
-                                    {new Date(ad.actionDate).toLocaleDateString('en-AU', { 
-                                        day: 'numeric', 
-                                        month: 'short', 
+                                    {new Date(ad.actionDate).toLocaleDateString('en-AU', {
+                                        day: 'numeric',
+                                        month: 'short',
                                         year: 'numeric',
                                         hour: '2-digit',
                                         minute: '2-digit'
@@ -530,14 +530,14 @@
 
                 setActionedAds(prev => {
                     const updated = { ...prev };
-                    const key = status === 'Approved' ? 'approved' : 
+                    const key = status === 'Approved' ? 'approved' :
                                 status === 'Needs Edit' ? 'needsEdit' : 'rejected';
-                    
+
                     // Remove from other categories if exists
                     ['approved', 'needsEdit', 'rejected'].forEach(cat => {
                         updated[cat] = updated[cat].filter(a => a.rowIndex !== ad.rowIndex);
                     });
-                    
+
                     // Add to new category
                     updated[key] = [actionedAd, ...updated[key]];
                     localStorage.setItem('actionedAds', JSON.stringify(updated));
@@ -627,7 +627,7 @@
                         syncActionedAdsWithSheet(rows, extractedClientInfo, colMap);
 
                         setAds(pendingAds);
-                        
+
                         localStorage.setItem('cachedAds', JSON.stringify({
                             ads: pendingAds,
                             clientInfo: extractedClientInfo,
@@ -731,16 +731,16 @@
                     });
 
                     saveActionedAd(ad, status, notes);
-                    
+
                     const updatedAds = ads.filter(a => a.rowIndex !== ad.rowIndex);
                     setAds(updatedAds);
-                    
+
                     localStorage.setItem('cachedAds', JSON.stringify({
                         ads: updatedAds,
                         clientInfo: clientInfo,
                         timestamp: Date.now()
                     }));
-                    
+
                     setEditNotes(prev => {
                         const updated = { ...prev };
                         delete updated[ad.rowIndex];
@@ -865,7 +865,7 @@
                         display: 'flex', justifyContent: 'center', alignItems: 'center',
                         minHeight: '100vh', padding: '20px'
                     }}>
-                        <div style={{ 
+                        <div style={{
                             textAlign: 'center', maxWidth: '600px', backgroundColor: 'white',
                             padding: '40px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
                         }}>
@@ -893,8 +893,8 @@
             return (
                 <div style={{ minHeight: '100vh', backgroundColor: '#f0f2f5', padding: '20px' }}>
                     <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-                        <div style={{ 
-                            marginBottom: '20px', 
+                        <div style={{
+                            marginBottom: '20px',
                             padding: '20px',
                             backgroundColor: 'white',
                             borderRadius: '8px',
